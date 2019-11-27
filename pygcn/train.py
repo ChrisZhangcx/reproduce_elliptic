@@ -98,12 +98,13 @@ def test():
           "accuracy= {:.4f}".format(acc_test.item()))
 
 
-# Train model
-t_total = time.time()
-for epoch in range(args.epochs):
-    train(epoch)
-print("Optimization Finished!")
-print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
+if __name__ == '__main__':
+    # Train model
+    t_total = time.time()
+    for epoch in range(args.epochs):
+        train(epoch)
+    print("Optimization Finished!")
+    print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
 
-# Testing
-test()
+    # Testing
+    test()
