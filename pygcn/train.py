@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 
+import os
 import time
 import argparse
 import numpy as np
@@ -10,9 +11,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from pygcn.utils import load_data, accuracy
-from pygcn.losses import LabelSmoothLoss
-from pygcn.models import GCN
+from gcn_improve.pygcn.utils import load_data, accuracy
+from gcn_improve.pygcn.losses import LabelSmoothLoss
+from gcn_improve.pygcn.models import GCN
+
 
 # Training settings
 parser = argparse.ArgumentParser()
@@ -52,6 +54,7 @@ loss = LabelSmoothLoss()
 optimizer = optim.Adam(model.parameters(),
                        lr=args.lr, weight_decay=args.weight_decay)
 
+args.cuda = False
 if args.cuda:
     model.cuda()
     features = features.cuda()
