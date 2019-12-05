@@ -1,7 +1,7 @@
 import os
 import pickle
 
-import gcn_improve.utils as utils
+import utils as utils
 
 
 EDGE_PATH = r"../data/elliptic_bitcoin_dataset/elliptic_txs_edgelist.csv"
@@ -33,11 +33,10 @@ class Parser(object):
             self.load_edge()
             self.load_class()
             self.load_feature()
+            self.dump()
         print("---------- Data pre-processing finish. ----------")
         self.statistics()
         # Parse data
-        # Dump
-        self.dump()
 
     def load_edge(self):
         data = utils.load_csv(self.edge_path)

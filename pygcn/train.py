@@ -11,9 +11,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from gcn_improve.pygcn.utils import load_data, accuracy
-from gcn_improve.pygcn.losses import LabelSmoothLoss
-from gcn_improve.pygcn.models import GCN
+from pygcn.utils import load_data, accuracy
+from pygcn.losses import LabelSmoothLoss
+from pygcn.models import GCN
 
 
 # Training settings
