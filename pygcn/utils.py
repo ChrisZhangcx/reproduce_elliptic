@@ -12,7 +12,14 @@ def encode_onehot(labels):
     return labels_onehot
 
 
-def load_data(path="../data/cora/", dataset="cora"):
+def load_data(data_type: str):
+    if data_type == "cora":
+        path, dataset = "data/cora", "cora"
+    elif data_type == "elliptic":
+        path, dataset = "data/elliptic/", "elliptic"
+    else:
+        raise NotImplementedError("Data type not support!")
+
     """Load citation network dataset (cora only for now)"""
     print('Loading {} dataset...'.format(dataset))
 
@@ -38,9 +45,16 @@ def load_data(path="../data/cora/", dataset="cora"):
     features = normalize(features)
     adj = normalize(adj + sp.eye(adj.shape[0]))
 
-    idx_train = range(140)
-    idx_val = range(200, 500)
-    idx_test = range(500, 1500)
+    if data_type == "cora":
+        idx_train = range(140)
+        idx_val = range(200, 500)
+        idx_test = range(500, 1500)
+    elif data_type == "ellptic":
+        idx_train = range(136265)
+        idx_val = range(136265, 136275)
+        idx_test = range(136265, 203769)
+    else:
+        idx_train, idx_val, idx_test = 0, 0, 0
 
     features = torch.FloatTensor(np.array(features.todense()))
     labels = torch.LongTensor(np.where(labels)[1])

@@ -36,7 +36,8 @@ class Parser(object):
             self.dump()
         print("---------- Data pre-processing finish. ----------")
         self.statistics()
-        # Parse data
+
+        # 136265
 
     def load_edge(self):
         data = utils.load_csv(self.edge_path)
@@ -115,8 +116,8 @@ class Parser(object):
             return
 
         print("\n---------- Generating gcn-usage data format... ----------")
-        # elliptic.edges
-        edges_path = os.path.join(self.dump_path, "elliptic.edges")
+        # elliptic.cites
+        edges_path = os.path.join(self.dump_path, "elliptic.cites")
         with open(edges_path, "w", encoding="utf-8") as file:
             for e in self.edges:
                 file.write(f"{e[0]} {e[1]}\n")
@@ -134,4 +135,4 @@ if __name__ == '__main__':
     parser = Parser()
     parser.parse_data(is_dump=False)
 
-    parser.parse_to_gcn_dataset()
+    # parser.parse_to_gcn_dataset()
