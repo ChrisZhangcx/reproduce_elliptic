@@ -49,7 +49,7 @@ def load_data(data_type: str):
         idx_train = range(140)
         idx_val = range(200, 500)
         idx_test = range(500, 1500)
-    elif data_type == "ellptic":
+    elif data_type == "elliptic":
         idx_train = range(136265)
         idx_val = range(136265, 136275)
         idx_test = range(136265, 203769)
