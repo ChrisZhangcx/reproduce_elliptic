@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from pygcn.utils import load_data, accuracy
+from pygcn.utils import load_data, accuracy, f1_score
 from pygcn.losses import LabelSmoothLoss
 from pygcn.models import GCN
 
@@ -98,6 +98,9 @@ def test():
     output = model(features, adj)
     loss_test = loss(output[idx_test], labels[idx_test])
     acc_test = accuracy(output[idx_test], labels[idx_test])
+    f1_test = f1_score(output[idx_test], labels[idx_test], 0)
+    f1_test = f1_score(output[idx_test], labels[idx_test], 1)
+    f1_test = f1_score(output[idx_test], labels[idx_test], 2)
     print("Test set results:",
           "loss= {:.4f}".format(loss_test.item()),
           "accuracy= {:.4f}".format(acc_test.item()))

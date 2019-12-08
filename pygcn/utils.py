@@ -3,8 +3,16 @@ import scipy.sparse as sp
 import torch
 
 
+id2label = dict()
+
+
 def encode_onehot(labels):
     classes = sorted(set(labels))
+
+    classes_list = list(classes)
+    for i in range(len(classes_list)):
+        id2label[i] = classes_list[i]
+
     classes_dict = {c: np.identity(len(classes))[i, :] for i, c in
                     enumerate(classes)}
     labels_onehot = np.array(list(map(classes_dict.get, labels)),
@@ -14,7 +22,7 @@ def encode_onehot(labels):
 
 def load_data(data_type: str):
     if data_type == "cora":
-        path, dataset = "data/cora", "cora"
+        path, dataset = "data/cora/", "cora"
     elif data_type == "elliptic":
         path, dataset = "data/elliptic/", "elliptic"
     else:
@@ -92,3 +100,33 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
+
+
+def f1_score(output, labels, positive_label_id: int = None):
+    if positive_label_id is None:
+        raise NotImplementedError("Not support calculate F1 scores for all types.")
+
+    preds = output.max(1)[1].type_as(labels)
+
+    preds_num = preds.numpy().tolist()
+    labels_num = labels.numpy().tolist()
+
+    assert len(preds_num) == len(labels_num)
+
+    tp, fp, fn = 0, 0, 0
+    for i in range(len(preds_num)):
+        p, l = preds_num[i], labels_num[i]
+        if p == positive_label_id:
+            if l == p:
+                tp += 1
+            else:
+                fp += 1
+        elif l == positive_label_id:
+            fn += 1
+
+    precision = tp * 1.0 / (tp + fp) if tp + fp > 0 else 0.0
+    recall = tp * 1.0 / (tp + fn) if tp + fn > 0 else 0.0
+    f1 = 2.0 * precision * recall / (precision + recall) if precision + recall > 0 else 0.0
+
+    print(id2label[positive_label_id], precision, recall, f1)
+    return precision, recall, f1

@@ -135,4 +135,4 @@ if __name__ == '__main__':
     parser = Parser()
     parser.parse_data(is_dump=False)
 
-    # parser.parse_to_gcn_dataset()
+    parser.parse_to_gcn_dataset()
