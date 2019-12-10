@@ -71,11 +71,10 @@ def load_data(data_type: str):
                 idx_train.append(i)
         """
     elif data_type == "elliptic":
-        train_range = range(136265)
         filter_labels = labels.numpy()
-        idx_train = [i for i in train_range if filter_labels[i] != 2]
-        idx_val = range(136265, 136275)
-        idx_test = range(136265, 203769)
+        idx_train = [i for i in range(136265) if filter_labels[i] != 2]
+        idx_val = [i for i in range(136000, 136275) if filter_labels[i] != 2]
+        idx_test = [i for i in range(136265, 203769) if filter_labels[i] != 2]
     else:
         idx_train, idx_val, idx_test = 0, 0, 0
 
