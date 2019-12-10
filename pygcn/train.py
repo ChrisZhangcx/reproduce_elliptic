@@ -52,6 +52,7 @@ model = GCN(nfeat=features.shape[1],
             nhid=args.hidden,
             nclass=labels.max().item() + 1,
             dropout=args.dropout)
+# loss = nn.CrossEntropyLoss(weight=torch.Tensor([8.0, 1.0, 1.0]))
 loss = LabelSmoothLoss()
 optimizer = optim.Adam(model.parameters(),
                        lr=args.lr, weight_decay=args.weight_decay)
@@ -98,9 +99,7 @@ def test():
     output = model(features, adj)
     loss_test = loss(output[idx_test], labels[idx_test])
     acc_test = accuracy(output[idx_test], labels[idx_test])
-    f1_test = f1_score(output[idx_test], labels[idx_test], 0)
-    f1_test = f1_score(output[idx_test], labels[idx_test], 1)
-    f1_test = f1_score(output[idx_test], labels[idx_test], 2)
+    f1_score(output[idx_test], labels[idx_test])
     print("Test set results:",
           "loss= {:.4f}".format(loss_test.item()),
           "accuracy= {:.4f}".format(acc_test.item()))

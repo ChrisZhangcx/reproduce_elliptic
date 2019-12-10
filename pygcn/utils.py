@@ -41,6 +41,7 @@ def load_data(data_type: str):
     idx_map = {j: i for i, j in enumerate(idx)}
     edges_unordered = np.genfromtxt("{}{}.cites".format(path, dataset),
                                     dtype=np.int32)
+    # map node name to id
     edges = np.array(list(map(idx_map.get, edges_unordered.flatten())),
                      dtype=np.int32).reshape(edges_unordered.shape)
     adj = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])),
@@ -53,20 +54,30 @@ def load_data(data_type: str):
     features = normalize(features)
     adj = normalize(adj + sp.eye(adj.shape[0]))
 
+    features = torch.FloatTensor(np.array(features.todense()))
+    labels = torch.LongTensor(np.where(labels)[1])
+    adj = sparse_mx_to_torch_sparse_tensor(adj)
+
     if data_type == "cora":
         idx_train = range(140)
         idx_val = range(200, 500)
         idx_test = range(500, 1500)
+        """
+        # TODO: test code
+        idx_train = []
+        filter_labels = labels.numpy()
+        for i in range(140):
+            if filter_labels[i] != 0:
+                idx_train.append(i)
+        """
     elif data_type == "elliptic":
-        idx_train = range(136265)
+        train_range = range(136265)
+        filter_labels = labels.numpy()
+        idx_train = [i for i in train_range if filter_labels[i] == 0]
         idx_val = range(136265, 136275)
         idx_test = range(136265, 203769)
     else:
         idx_train, idx_val, idx_test = 0, 0, 0
-
-    features = torch.FloatTensor(np.array(features.todense()))
-    labels = torch.LongTensor(np.where(labels)[1])
-    adj = sparse_mx_to_torch_sparse_tensor(adj)
 
     idx_train = torch.LongTensor(idx_train)
     idx_val = torch.LongTensor(idx_val)
@@ -102,31 +113,27 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     return torch.sparse.FloatTensor(indices, values, shape)
 
 
-def f1_score(output, labels, positive_label_id: int = None):
-    if positive_label_id is None:
-        raise NotImplementedError("Not support calculate F1 scores for all types.")
+def f1_score(output, labels):
+    print("\n---------- Metrics for each label: ----------")
+    for tid in id2label.keys():
+        positive_label_id = tid
+        preds = output.max(1)[1].type_as(labels)
+        preds_num = preds.numpy().tolist()
+        labels_num = labels.numpy().tolist()
 
-    preds = output.max(1)[1].type_as(labels)
+        tp, fp, fn = 0, 0, 0
+        for i in range(len(preds_num)):
+            p, l = preds_num[i], labels_num[i]
+            if p == positive_label_id:
+                if l == p:
+                    tp += 1
+                else:
+                    fp += 1
+            elif l == positive_label_id:
+                fn += 1
+        precision = tp * 1.0 / (tp + fp) if tp + fp > 0 else 0.0
+        recall = tp * 1.0 / (tp + fn) if tp + fn > 0 else 0.0
+        f1 = 2.0 * precision * recall / (precision + recall) if precision + recall > 0 else 0.0
 
-    preds_num = preds.numpy().tolist()
-    labels_num = labels.numpy().tolist()
-
-    assert len(preds_num) == len(labels_num)
-
-    tp, fp, fn = 0, 0, 0
-    for i in range(len(preds_num)):
-        p, l = preds_num[i], labels_num[i]
-        if p == positive_label_id:
-            if l == p:
-                tp += 1
-            else:
-                fp += 1
-        elif l == positive_label_id:
-            fn += 1
-
-    precision = tp * 1.0 / (tp + fp) if tp + fp > 0 else 0.0
-    recall = tp * 1.0 / (tp + fn) if tp + fn > 0 else 0.0
-    f1 = 2.0 * precision * recall / (precision + recall) if precision + recall > 0 else 0.0
-
-    print(id2label[positive_label_id], precision, recall, f1)
-    return precision, recall, f1
+        print(id2label[positive_label_id], precision, recall, f1)
+    return None
