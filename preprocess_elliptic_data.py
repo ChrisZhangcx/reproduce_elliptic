@@ -157,6 +157,10 @@ class Parser(object):
                 test_features.append(feature)
                 test_labels.append(label)
             idx += 1
+        label2id = {"1": 0, "2": 1}
+        train_labels = [label2id[label] for label in train_labels]
+        test_labels = [label2id[label] for label in test_labels]
+
         train_data = {
             "features": train_features,
             "labels": train_labels
@@ -168,7 +172,7 @@ class Parser(object):
 
         content_path = os.path.join(self.dump_path, "elliptic_for_sklearn.pkl")
         with open(content_path, "wb") as file:
-            pickle.dump([train_data, test_data], file)
+            pickle.dump([train_data, test_data, label2id], file)
         print("---------- Successfully dumped file into disk. ----------")
 
 
@@ -177,7 +181,7 @@ class BaselineTrainer(object):
         # this load path is hardcore, maybe refactored in the future
         self.load_path = r"../data/elliptic_bitcoin_dataset/elliptic_for_sklearn.pkl"
         if os.path.exists(self.load_path):
-            [train_data, test_data] = pickle.load(open(self.load_path, "rb"))
+            [train_data, test_data, label2id] = pickle.load(open(self.load_path, "rb"))
         else:
             raise FileNotFoundError("No saved file for testing baseline")
 
@@ -188,18 +192,20 @@ class BaselineTrainer(object):
 
         self.train_data = train_data
         self.test_data = test_data
+        self.label2id = label2id
+        self.id2label = {label2id[l]: l for l in self.label2id.keys()}
 
     def train_and_evaluate(self):
         if self.model_type == "logistic_regression":
-            perform_logistic_repression(self.train_data, self.test_data)
+            perform_logistic_repression(self.train_data, self.test_data, self.id2label)
         else:
             raise NotImplementedError("Current model type not supported!")
 
 
 if __name__ == '__main__':
-    parser = Parser()
-    parser.parse_data(is_dump=False)
-    parser.parse_to_sklearn_baseline()
+    # parser = Parser()
+    # parser.parse_data(is_dump=False)
+    # parser.parse_to_sklearn_baseline()
     # parser.parse_to_gcn_dataset()
 
     baseline_trainer = BaselineTrainer(model_type="logistic_regression")
