@@ -1,7 +1,8 @@
 import os
 import pickle
 
-import utils as utils
+from utils import load_csv
+from utils import perform_logistic_repression
 
 
 EDGE_PATH = r"../data/elliptic_bitcoin_dataset/elliptic_txs_edgelist.csv"
@@ -40,7 +41,7 @@ class Parser(object):
         # 136265
 
     def load_edge(self):
-        data = utils.load_csv(self.edge_path)
+        data = load_csv(self.edge_path)
         is_hander_removed = False
 
         for line in data:
@@ -52,7 +53,7 @@ class Parser(object):
             self.edges.append((source, target))
 
     def load_class(self):
-        data = utils.load_csv(self.class_path)
+        data = load_csv(self.class_path)
         is_hander_removed = False
 
         for line in data:
@@ -64,7 +65,7 @@ class Parser(object):
             self.node2label[source] = label
 
     def load_feature(self):
-        data = utils.load_csv(self.feature_path)
+        data = load_csv(self.feature_path)
 
         for line in data:
             source = line[0]
@@ -88,7 +89,7 @@ class Parser(object):
             label2num[l] += 1
         print(f"----- {label2num} -----")
 
-        # correference related
+        # co-reference related
         feature_nodes = set(self.node2feature.keys())
         label_nodes = set(self.node2label.keys())
         diff1 = feature_nodes - label_nodes
@@ -110,9 +111,14 @@ class Parser(object):
             [self.edges, self.node2label, self.node2feature] = pickle.load(file)
         print("---------- Successfully load graph. ----------")
 
-    def parse_to_gcn_dataset(self):
+    def check_initialize(self) -> bool:
         if len(self.edges) == 0:
             print("---------- Data have not been initialized yet. ----------")
+            return False
+        return True
+
+    def parse_to_gcn_dataset(self):
+        if not self.check_initialize():
             return
 
         print("\n---------- Generating gcn-usage data format... ----------")
@@ -130,9 +136,71 @@ class Parser(object):
                 feature = self.node2feature[node]
                 file.write(f"{node} {' '.join([str(f) for f in feature])} {label}\n")
 
+    def parse_to_sklearn_baseline(self):
+        if not self.check_initialize():
+            return
+        print("\n---------- Generating sklearn-usage data format... ----------")
+
+        idx = 0
+        train_features, train_labels, test_features, test_labels = [], [], [], []
+        for node in self.node2label:
+            feature = self.node2feature[node]
+            label = self.node2label[node]
+            if label == "unknown":
+                idx += 1
+                continue
+
+            if idx < 136265:
+                train_features.append(feature)
+                train_labels.append(label)
+            else:
+                test_features.append(feature)
+                test_labels.append(label)
+            idx += 1
+        train_data = {
+            "features": train_features,
+            "labels": train_labels
+        }
+        test_data = {
+            "features": test_features,
+            "labels": test_labels
+        }
+
+        content_path = os.path.join(self.dump_path, "elliptic_for_sklearn.pkl")
+        with open(content_path, "wb") as file:
+            pickle.dump([train_data, test_data], file)
+        print("---------- Successfully dumped file into disk. ----------")
+
+
+class BaselineTrainer(object):
+    def __init__(self, model_type: str):
+        # this load path is hardcore, maybe refactored in the future
+        self.load_path = r"../data/elliptic_bitcoin_dataset/elliptic_for_sklearn.pkl"
+        if os.path.exists(self.load_path):
+            [train_data, test_data] = pickle.load(open(self.load_path, "rb"))
+        else:
+            raise FileNotFoundError("No saved file for testing baseline")
+
+        if model_type == "logistic_regression":
+            self.model_type = model_type
+        else:
+            raise NotImplementedError("Current model type not supported!")
+
+        self.train_data = train_data
+        self.test_data = test_data
+
+    def train_and_evaluate(self):
+        if self.model_type == "logistic_regression":
+            perform_logistic_repression(self.train_data, self.test_data)
+        else:
+            raise NotImplementedError("Current model type not supported!")
+
 
 if __name__ == '__main__':
     parser = Parser()
     parser.parse_data(is_dump=False)
+    parser.parse_to_sklearn_baseline()
+    # parser.parse_to_gcn_dataset()
 
-    parser.parse_to_gcn_dataset()
+    baseline_trainer = BaselineTrainer(model_type="logistic_regression")
+    baseline_trainer.train_and_evaluate()
