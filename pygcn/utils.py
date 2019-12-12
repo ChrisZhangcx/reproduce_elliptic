@@ -72,7 +72,7 @@ def load_data(data_type: str):
         """
     elif data_type == "elliptic":
         filter_labels = labels.numpy()
-        idx_train = [i for i in range(136265) if filter_labels[i] != 2]
+        idx_train = [i for i in range(136265)if filter_labels[i] != 2]
         idx_val = [i for i in range(136000, 136275) if filter_labels[i] != 2]
         idx_test = [i for i in range(136265, 203769) if filter_labels[i] != 2]
     else:
@@ -136,3 +136,7 @@ def f1_score(output, labels):
 
         print(id2label[positive_label_id], precision, recall, f1)
     return None
+
+
+if __name__ == '__main__':
+    pass

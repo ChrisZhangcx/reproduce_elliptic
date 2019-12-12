@@ -2,7 +2,7 @@ import os
 import pickle
 
 from utils import load_csv
-from utils import perform_logistic_repression
+from utils import perform_baseline_models
 
 
 EDGE_PATH = r"../data/elliptic_bitcoin_dataset/elliptic_txs_edgelist.csv"
@@ -185,21 +185,14 @@ class BaselineTrainer(object):
         else:
             raise FileNotFoundError("No saved file for testing baseline")
 
-        if model_type == "logistic_regression":
-            self.model_type = model_type
-        else:
-            raise NotImplementedError("Current model type not supported!")
-
+        self.model_type = model_type
         self.train_data = train_data
         self.test_data = test_data
         self.label2id = label2id
         self.id2label = {label2id[l]: l for l in self.label2id.keys()}
 
     def train_and_evaluate(self):
-        if self.model_type == "logistic_regression":
-            perform_logistic_repression(self.train_data, self.test_data, self.id2label)
-        else:
-            raise NotImplementedError("Current model type not supported!")
+        perform_baseline_models(self.train_data, self.test_data, self.id2label, self.model_type)
 
 
 if __name__ == '__main__':
@@ -208,5 +201,5 @@ if __name__ == '__main__':
     # parser.parse_to_sklearn_baseline()
     # parser.parse_to_gcn_dataset()
 
-    baseline_trainer = BaselineTrainer(model_type="logistic_regression")
+    baseline_trainer = BaselineTrainer(model_type="logitstic_regression")
     baseline_trainer.train_and_evaluate()

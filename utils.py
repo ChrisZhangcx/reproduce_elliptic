@@ -45,17 +45,28 @@ def f1_score(predictions: np.ndarray, ground_truth: np.ndarray, id2label: dict):
     return None
 
 
-def perform_logistic_repression(train_data: dict, test_data: dict, id2label: dict):
-    from sklearn.linear_model import LogisticRegression
+def perform_baseline_models(train_data: dict, test_data: dict, id2label: dict, model_type: str):
+    if model_type == "logistic_regression":
+        from sklearn.linear_model import LogisticRegression
+        model = LogisticRegression()
+    elif model_type == "random_forest":
+        from sklearn.ensemble import RandomForestClassifier
+        model = RandomForestClassifier(n_estimators=50, max_features=50)
+    elif model_type == "mlp":
+        from sklearn.neural_network import MLPClassifier
+        model = MLPClassifier(hidden_layer_sizes=50)
+    else:
+        raise NotImplementedError("Current model not supported!")
 
     train_features, train_labels = train_data['features'], train_data['labels']
     test_features, test_labels = test_data['features'], test_data['labels']
 
-    lr_model = LogisticRegression()
-    lr_model.fit(train_features, train_labels)
-    predictions = lr_model.predict(test_features)
+    model.fit(train_features, train_labels)
+    predictions = model.predict(test_features)
     ground_truth = np.array(test_labels, dtype=np.int)
+    print(f"---------- Results for model: {model_type} ----------")
     f1_score(predictions, ground_truth, id2label)
+    print(f"accuracy: {accuracy(predictions, ground_truth)}")
 
 
 if __name__ == '__main__':
