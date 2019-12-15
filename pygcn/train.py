@@ -96,7 +96,7 @@ def train(epoch):
           'time: {:.4f}s'.format(time.time() - t))
 
 
-def test():
+def perform_test():
     model.eval()
     output = model(features, adj)
     loss_test = loss(output[idx_test], labels[idx_test])
@@ -116,4 +116,4 @@ if __name__ == '__main__':
     print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
 
     # Testing
-    test()
+    perform_test()
