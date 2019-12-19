@@ -51,7 +51,8 @@ adj, features, labels, idx_train, idx_val, idx_test = load_data(args.data_type)
 model = GCN(nfeat=features.shape[1],
             nhid=args.hidden,
             nclass=labels.max().item() + 1,
-            dropout=args.dropout)
+            dropout=args.dropout,
+            data_type=args.data_type)
 if args.data_type == "cora":
     loss = LabelSmoothLoss()
 elif args.data_type == "elliptic":
