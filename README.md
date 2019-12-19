@@ -1,7 +1,7 @@
 Pytorch-GCN Improvements
 ====
 
-A branch to implement some new coming insights to improve GCN.
+This is a branch aiming to re-produce GCN results on Elliptic datasets.
 
 ## Update Log
 
