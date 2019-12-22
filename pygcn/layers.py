@@ -19,8 +19,13 @@ class GraphConvolution(Module):
         self.in_features = in_features
         self.out_features = out_features
 
-        if data_type == "elliptic":
+        if data_type.startswith("elliptic"):
             self.weight = Parameter(torch.FloatTensor(2 * in_features, out_features))
+            # choose aggregator
+            self.aggregator = "mean" if len(data_type.split('_')) == 1 else data_type.split('_')[1].lower()
+            if self.aggregator == "lstm":
+                # TODO: this part should implemented with a lstm
+                pass
         else:
             self.weight = Parameter(torch.FloatTensor(in_features, out_features))
 
@@ -43,16 +48,24 @@ class GraphConvolution(Module):
         # Inductive settings
         support = torch.spmm(adj, input)
 
-        if self.data_type == "elliptic":
-            output = torch.mm(torch.cat([support, input], dim=-1), self.weight)
+        if self.data_type.startswith("elliptic"):
+            if self.aggregator == "mean":
+                output = torch.mm(torch.cat([support, input], dim=-1), self.weight)
+            elif self.aggregator == "lstm":
+                pass
+            elif self.aggregator == "pooling":
+                pass
+            else:
+                raise NotImplementedError("Specified aggregator not implemented.")
         else:
             output = torch.mm(support, self.weight)
-        # output = output / torch.norm(output, dim=1).reshape([output.shape[0], 1])
 
         if self.bias is not None:
-            return output + self.bias
-        else:
-            return output
+            output += self.bias
+
+        # output = output / (torch.norm(output, dim=1).reshape([output.shape[0], 1]))
+
+        return output
 
     def __repr__(self):
         return self.__class__.__name__ + ' (' \

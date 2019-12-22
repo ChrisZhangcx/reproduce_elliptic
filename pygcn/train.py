@@ -55,7 +55,7 @@ model = GCN(nfeat=features.shape[1],
             data_type=args.data_type)
 if args.data_type == "cora":
     loss = LabelSmoothLoss()
-elif args.data_type == "elliptic":
+elif args.data_type.startswith("elliptic"):
     loss = nn.CrossEntropyLoss(weight=torch.Tensor([0.7, 0.3, 0.0]))
 optimizer = optim.Adam(model.parameters(),
                        lr=args.lr, weight_decay=args.weight_decay)
