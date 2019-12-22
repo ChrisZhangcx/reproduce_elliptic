@@ -18,7 +18,12 @@ class GraphConvolution(Module):
 
         self.in_features = in_features
         self.out_features = out_features
-        self.weight = Parameter(torch.FloatTensor(2 * in_features if data_type == "elliptic" else in_features, out_features))
+
+        if data_type == "elliptic":
+            self.weight = Parameter(torch.FloatTensor(2 * in_features, out_features))
+        else:
+            self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+
         if bias:
             self.bias = Parameter(torch.FloatTensor(out_features))
         else:
@@ -37,7 +42,11 @@ class GraphConvolution(Module):
 
         # Inductive settings
         support = torch.spmm(adj, input)
-        output = torch.mm(torch.cat([support, input], dim=-1) if self.data_type == "elliptic" else support, self.weight)
+
+        if self.data_type == "elliptic":
+            output = torch.mm(torch.cat([support, input], dim=-1), self.weight)
+        else:
+            output = torch.mm(support, self.weight)
         # output = output / torch.norm(output, dim=1).reshape([output.shape[0], 1])
 
         if self.bias is not None:
