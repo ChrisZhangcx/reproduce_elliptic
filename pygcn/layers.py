@@ -20,12 +20,15 @@ class GraphConvolution(Module):
         self.out_features = out_features
 
         if data_type.startswith("elliptic"):
-            self.weight = Parameter(torch.FloatTensor(2 * in_features, out_features))
+            self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+            # self.weight = Parameter(torch.FloatTensor(2 * in_features, out_features))
             # choose aggregator
             self.aggregator = "mean" if len(data_type.split('_')) == 1 else data_type.split('_')[1].lower()
             if self.aggregator == "lstm":
                 # TODO: this part should implemented with a lstm
                 pass
+            elif self.aggregator == "pooling":
+                self.aggregator_dense = torch.nn.Linear(2 * in_features, 2 * in_features)
         else:
             self.weight = Parameter(torch.FloatTensor(in_features, out_features))
 
@@ -45,12 +48,11 @@ class GraphConvolution(Module):
         # support = torch.mm(input, self.weight)
         # output = torch.spmm(adj, support)
 
-        # Inductive settings
-        support = torch.spmm(adj, input)
-
         if self.data_type.startswith("elliptic"):
             if self.aggregator == "mean":
-                output = torch.mm(torch.cat([support, input], dim=-1), self.weight)
+                support = torch.spmm(adj, input)
+                # output = torch.mm(torch.cat([support, input], dim=-1), self.weight)
+                output = torch.mm(support, self.weight)
             elif self.aggregator == "lstm":
                 pass
             elif self.aggregator == "pooling":
@@ -58,12 +60,13 @@ class GraphConvolution(Module):
             else:
                 raise NotImplementedError("Specified aggregator not implemented.")
         else:
+            support = torch.spmm(adj, input)
             output = torch.mm(support, self.weight)
 
         if self.bias is not None:
             output += self.bias
 
-        # output = output / (torch.norm(output, dim=1).reshape([output.shape[0], 1]))
+        output = output / (torch.norm(output, dim=1).reshape([output.shape[0], 1]))
 
         return output
 
